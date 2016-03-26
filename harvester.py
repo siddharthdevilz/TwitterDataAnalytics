@@ -1,15 +1,17 @@
 import tweepy
 import time
-import couchdb
+#import couchdb
 import os
 import urllib
 import json
 from tweepy import Stream
 from tweepy.streaming import StreamListener
-import simplejson
+#import simplejson
 import datetime
 from datetime import timedelta
 import math
+
+import couch
 from math import radians, cos, sin, asin, sqrt
 
 access_token = "3254357972-gQDabKOQfbZJsSGyUVynYqckImVjizBDydjuxhX"
@@ -17,14 +19,16 @@ access_secret = "rrGORFp6LW3MznoFKfCvkjNo3pAfpVPGb75Vv3rzv4xFF"
 consumer_key = "WdTNeWnGBzRHfuJGBN0xoCJxp"
 consumer_secret = "1BKrrH5eQFrYzzzf6Z5bXYdfVNENtoDpdXWVQw0NDt5TK6Czoe"
 
+overall_count = 0
+
 
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_secret)
 api = tweepy.API(auth)
 
-couch = couchdb.Server()
-couch = couchdb.Server('http://localhost:5984')
-db = couch['melb_tweets']
+#couch = couchdb.Server()
+#couch = couchdb.Server('http://localhost:5984')
+#db = couch['melb_tweets']
 
 def getDistance(lon1, lat1, lon2, lat2):
 
@@ -68,7 +72,7 @@ def userAllTweet(screenName):
     return alltweets
 
 
-def getTimeline(screenName,db):
+def getTimeline(screenName):
     t = tweepy.Cursor(api.user_timeline, id=screenName,count=200).items()
     # while True:
     try:
@@ -93,6 +97,7 @@ def getTimeline(screenName,db):
                     json.dump(tweet._json, outfile)
                     outfile.write("\n")
                 print tweet._json
+                overall_count += 1
     except tweepy.TweepError:
         time.sleep(60)
         # continue
@@ -109,7 +114,7 @@ if __name__ == '__main__':
             with open('data.txt', 'a') as outfile:
                 json.dump(tweet._json, outfile)
                 outfile.write("\n")
-            print tweet._json
+            #print tweet._json
 
             if tweet._json["coordinates"] != None:
                 screenName = tweet._json["user"]["screen_name"]
@@ -117,15 +122,23 @@ if __name__ == '__main__':
                 count = 0
                 for tweet in alltweets:
                     count = count + 1
+                    overall_count += 1
                     with open('data.txt', 'a') as outfile:
                         json.dump(tweet._json, outfile)
                         outfile.write("\n")
 
-                    print tweet._json
-                print ("The count of tweets for a timeline is: ", count)
+                    #print tweet._json
+                print ("The count of tweets for a timeline is: ", count, overall_count)
+                if overall_count > 10000:
+                    couch.write_to_couch()
+                    count = 0
+                    overall_count = 0
                 # getTimeline(screenName,db)
         except tweepy.TweepError:
-            time.sleep(60)
+            couch.write_to_couch()
+            count = 0
+            overall_count = 0
+            time.sleep(120)
             continue
         except StopIteration:
             break
