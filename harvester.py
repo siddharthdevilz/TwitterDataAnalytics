@@ -10,9 +10,10 @@ from tweepy.streaming import StreamListener
 import datetime
 from datetime import timedelta
 import math
+from textblob import TextBlob
+from geopy.geocoders import Nominatim
 
 import couch
-from math import radians, cos, sin, asin, sqrt
 
 access_token = "3254357972-gQDabKOQfbZJsSGyUVynYqckImVjizBDydjuxhX"
 access_secret = "rrGORFp6LW3MznoFKfCvkjNo3pAfpVPGb75Vv3rzv4xFF"
@@ -36,30 +37,9 @@ api = tweepy.API(auth)
 #couch = couchdb.Server('http://localhost:5984')
 #db = couch['melb_tweets']
 
-def getDistance(lon1, lat1, lon2, lat2):
-
-    # convert decimal degrees to radians 
-    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
-
-    R = 6373 
-    dlon = lon2 - lon1 
-    dlat = lat2 - lat1 
-    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-    c = 2 * asin(sqrt(a)) 
-    km = R * c
-    return km
-
-def readQuery(path):
-    a = []
-    with open(path, 'r') as f:
-        for line in f.readlines():
-            a.append(line.strip())
-
-    return a
-
 path = "./st.txt"
 
-def userAllTweet(screenName):
+def getTimeline(screenName):
     alltweets = []
     try:
         new_tweets = api.user_timeline(screen_name=screenName, count=200)
@@ -72,46 +52,11 @@ def userAllTweet(screenName):
             alltweets.extend(new_tweets)
             oldest = alltweets[-1].id - 1
     except Exception as e:
-        print ("userAllTweet", e)
+        print ("getTimeline", e)
         pass
 
     return alltweets
 
-
-def getTimeline(screenName):
-    t = tweepy.Cursor(api.user_timeline, id=screenName,count=200).items()
-    # while True:
-    try:
-        tweet = t.next()
-        if (tweet._json["coordinates"] != None) :
-        # & (tweet._json['place']['attributes']!= None):
-          latitude = tweet._json["coordinates"]["coordinates"][1]
-          longitude = tweet._json["coordinates"]["coordinates"][0]
-          #restrict to the Melbourne area
-          if (longitude > 140.95) & (longitude < 148.63) & (latitude > -39.18) & (latitude < -34) | (tweet._json['place']['full_name'] == 'Melbourne, Victoria'):
-
-                #     if tweet.id_str not in db:
-
-                # db[tweet.id_str] = tweet._json
-                # f = open("data.txt", "a+")
-                # f.write(tweet._json)
-                # f.write("\n")
-                with open('data.txt', 'a') as outfile:
-                    # outfile.write("\n")
-                    # outfile.write(tweet._json)
-                    # outfile.write(tweet._json + "\n")
-                    json.dump(tweet._json, outfile)
-                    outfile.write("\n")
-                print tweet._json
-                overall_count += 1
-    except tweepy.TweepError:
-        time.sleep(60)
-        # continue
-    # except StopIteration:
-    #     break
-
-#for i in readQuery(path):
-#    stadiumCoordinates = i +','+'2km'
 if __name__ == '__main__':
     bigT = tweepy.Cursor(api.search, result_type='recent',include_entities=True, geocode="-37.8375587,145.0413208,200km").items()
     print access_token
@@ -123,19 +68,20 @@ if __name__ == '__main__':
             with open('data.txt', 'a') as outfile:
                 json.dump(tweet._json, outfile)
                 outfile.write("\n")
-            #print tweet._json
-
             if tweet._json["coordinates"] != None:
                 screenName = tweet._json["user"]["screen_name"]
-                alltweets = userAllTweet(screenName)
+                alltweets = getTimeline(screenName)
                 count = 0
                 for tweet in alltweets:
                     count = count + 1
                     overall_count += 1
-                    with open('data.txt', 'a') as outfile:
-                        json.dump(tweet._json, outfile)
-                        outfile.write("\n")
-
+                    if tweet._json["coordinates"] != None:
+                        latitude = tweet._json["coordinates"]["coordinates"][1]
+                        longitude = tweet._json["coordinates"]["coordinates"][0]
+                        if (longitude > 140.95) & (longitude < 148.63) & (latitude > -39.18) & (latitude < -34) | (tweet._json['place']['full_name'] == 'Melbourne, Victoria'):
+                            with open('data.txt', 'a') as outfile:
+                                json.dump(tweet._json, outfile)
+                                outfile.write("\n")
                     #print tweet._json
                 print ("The count of tweets for a timeline is: ", count, overall_count)
                 if overall_count > 10000:
