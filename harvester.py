@@ -59,7 +59,6 @@ def getTimeline(screenName):
     return tweets
 
 if __name__ == '__main__':
-    keywords = getWords('/Users/sunshine/Desktop/topfastfood.txt')
     bigT = tweepy.Cursor(api.search, result_type='recent',include_entities=True, geocode="-37.8375587,145.0413208,200km").items()
     print access_token
     print access_secret
@@ -89,8 +88,6 @@ if __name__ == '__main__':
                     else:
                         placeFullName = None
                     if (coordinates0 > 140.95) & (coordinates0 < 148.63) & (coordinates1 > -39.18) & (coordinates1 < -34) | (placeFullName == 'Melbourne, Victoria'):
-                        commonWords = containKeywords(tweet._json["text"], keywords)
-                        print commonWords
                         with open('data.txt', 'a') as outfile:
                             json.dump(tweet._json, outfile)
                             outfile.write("\n")
