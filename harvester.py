@@ -42,22 +42,24 @@ path = "./st.txt"
 def getTimeline(screenName):
     alltweets = []
     try:
-        new_tweets = api.user_timeline(screen_name=screenName, count=200)
-        alltweets.extend(new_tweets)
-        oldest = alltweets[-1].id - 1
+        tweets = api.user_timeline(screen_name=screenName, count=200)
+        ############ get all the tweets##################
+        # new_tweets = api.user_timeline(screen_name=screenName, count=200)
+        # alltweets.extend(new_tweets)
+        # oldest = alltweets[-1].id - 1
         
-        #keep grabbing tweets until there are no tweets left to grab
-        while len(new_tweets) > 0:
-            new_tweets = api.user_timeline(screen_name=screenName, count=200, max_id=oldest)
-            alltweets.extend(new_tweets)
-            oldest = alltweets[-1].id - 1
+        # #keep grabbing tweets until there are no tweets left to grab
+        # while len(new_tweets) > 0:
+        #     new_tweets = api.user_timeline(screen_name=screenName, count=200, max_id=oldest)
+        #     alltweets.extend(new_tweets)
+        #     oldest = alltweets[-1].id - 1
     except Exception as e:
         print ("getTimeline", e)
         pass
-
-    return alltweets
+    return tweets
 
 if __name__ == '__main__':
+    keywords = getWords('/Users/sunshine/Desktop/topfastfood.txt')
     bigT = tweepy.Cursor(api.search, result_type='recent',include_entities=True, geocode="-37.8375587,145.0413208,200km").items()
     print access_token
     print access_secret
@@ -75,13 +77,23 @@ if __name__ == '__main__':
                 for tweet in alltweets:
                     count = count + 1
                     overall_count += 1
-                    if tweet._json["coordinates"] != None:
-                        latitude = tweet._json["coordinates"]["coordinates"][1]
-                        longitude = tweet._json["coordinates"]["coordinates"][0]
-                        if (longitude > 140.95) & (longitude < 148.63) & (latitude > -39.18) & (latitude < -34) | (tweet._json['place']['full_name'] == 'Melbourne, Victoria'):
-                            with open('data.txt', 'a') as outfile:
-                                json.dump(tweet._json, outfile)
-                                outfile.write("\n")
+                    if (tweet._json['coordinates'] != None):
+                        coordinates0 = tweet._json['coordinates']['coordinates'][0]
+                        coordinates1 = tweet._json['coordinates']['coordinates'][1]
+                    else:
+                        coordinates0 = 0
+                        coordinates1 = 0
+
+                    if tweet._json['place'] != None:
+                        placeFullName = tweet._json['place']['full_name']
+                    else:
+                        placeFullName = None
+                    if (coordinates0 > 140.95) & (coordinates0 < 148.63) & (coordinates1 > -39.18) & (coordinates1 < -34) | (placeFullName == 'Melbourne, Victoria'):
+                        commonWords = containKeywords(tweet._json["text"], keywords)
+                        print commonWords
+                        with open('data.txt', 'a') as outfile:
+                            json.dump(tweet._json, outfile)
+                            outfile.write("\n")
                     #print tweet._json
                 print ("The count of tweets for a timeline is: ", count, overall_count)
                 if overall_count > 10000:
