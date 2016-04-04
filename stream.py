@@ -49,11 +49,18 @@ def save_tweet(tweet):
 	pickled = jsonpickle.encode(tweet)
 	results = json.loads(pickled)
 	doc = results['py/state']['_json']
-
+	
 	# add sentiment value to the tweet
 	blob = TextBlob(doc['text'])
-	sentiment_score = blob.sentiment.polarity
-	doc["sentiment_score"] = sentiment_score
+	sentiment_polarity = blob.sentiment.polarity
+	sentiment_subjectivity = blob.sentiment.subjectivity
+
+	# create a nested json for sentiment score for the tweet
+	sentiment_score = {}
+	sentiment_score['polarity'] = sentiment_polarity
+	sentiment_score['subjectivity'] = sentiment_subjectivity
+	doc['sentiment_score'] = sentiment_score
+	
 	if (doc['coordinates'] != None):
 		coordinates0 = doc['coordinates']['coordinates'][0]
 		coordinates1 = doc['coordinates']['coordinates'][1]
@@ -69,7 +76,8 @@ def save_tweet(tweet):
 	if (coordinates0 > 140.95) & (coordinates0 < 148.63) & (coordinates1 > -39.18) & (coordinates1 < -34) | (placeFullName == 'Melbourne, Victoria'):
        	 with open('data.txt', 'a') as outfile:
        	 	print("doc: ", doc)
-        	print("sentiment_score:", doc['sentiment_score'])
+       	 	print("sentiment_polarity: ", doc['sentiment_score']['polarity'])
+        	print("sentiment_score:", doc['sentiment_score']['subjectivity'])
         	json.dump(doc, outfile)
         	outfile.write("\n")
 	# store tweets to couchbase
