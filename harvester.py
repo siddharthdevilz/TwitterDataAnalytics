@@ -12,8 +12,7 @@ from datetime import timedelta
 import math
 from textblob import TextBlob
 from geopy.geocoders import Nominatim
-
-import couch
+# import couch
 
 access_token = "3254357972-gQDabKOQfbZJsSGyUVynYqckImVjizBDydjuxhX"
 access_secret = "rrGORFp6LW3MznoFKfCvkjNo3pAfpVPGb75Vv3rzv4xFF"
@@ -25,7 +24,6 @@ access_secret_list = ['rrGORFp6LW3MznoFKfCvkjNo3pAfpVPGb75Vv3rzv4xFF', 'CqXHoVEA
 consumer_key_list = ['WdTNeWnGBzRHfuJGBN0xoCJxp', '7CQ1IAImnhdjQ5Tj8eB83LdMj', 'CwP9jWveyzDUC61XFb9iQTlfx']
 consumer_secret_list = ['1BKrrH5eQFrYzzzf6Z5bXYdfVNENtoDpdXWVQw0NDt5TK6Czoe', 'CqXHoVEAcW5XINRqtVLDV7AkOzFmmFg8SUUQrnRJVjqP8ZzLMU', 'yLDl387DdORqvXaFEyxOPR9MVEjYTQeIUFwMRJQu5NIrlgnfRI']
 
-overall_count = 0
 count_error = 0
 
 
@@ -41,6 +39,7 @@ path = "./st.txt"
 
 def getTimeline(screenName):
     alltweets = []
+    tweets = ''
     try:
         tweets = api.user_timeline(screen_name=screenName, count=200)
         ############ get all the tweets##################
@@ -58,41 +57,69 @@ def getTimeline(screenName):
         pass
     return tweets
 
-if __name__ == '__main__':
-    bigT = tweepy.Cursor(api.search, result_type='recent',include_entities=True, geocode="-37.8375587,145.0413208,200km").items()
-    print access_token
-    print access_secret
+def add_sentiment_score(tweet):
+    # add sentiment value to the tweet
+    blob = TextBlob(tweet['text'])
+    sentiment_polarity = blob.sentiment.polarity
+    sentiment_subjectivity = blob.sentiment.subjectivity
 
+    # create a nested json for sentiment score for the tweet
+    sentiment_score = {}
+    sentiment_score['polarity'] = sentiment_polarity
+    sentiment_score['subjectivity'] = sentiment_subjectivity
+    tweet['sentiment_score'] = sentiment_score
+    return tweet
+
+
+
+def check_location(tweet):
+    if (tweet['coordinates'] != None):
+        coordinates0 = tweet['coordinates']['coordinates'][0]
+        coordinates1 = tweet['coordinates']['coordinates'][1]
+    else:
+        coordinates0 = 0
+        coordinates1 = 0
+
+    if tweet['place'] != None:
+        placeFullName = tweet['place']['full_name']
+    else:
+        placeFullName = None
+    if (coordinates0 > 140.95) & (coordinates0 < 148.63) & (coordinates1 > -39.18) & (coordinates1 < -34) | (placeFullName == 'Melbourne, Victoria'):
+        return True
+    else:
+        return False
+
+def save_tweet(tweets):
+    overall_count = 0
     while True:
         try:
-            tweet = bigT.next()
-            with open('data.txt', 'a') as outfile:
-                json.dump(tweet._json, outfile)
-                outfile.write("\n")
+            tweet = tweets.next()
             if tweet._json["coordinates"] != None:
                 screenName = tweet._json["user"]["screen_name"]
                 alltweets = getTimeline(screenName)
                 count = 0
-                for tweet in alltweets:
+                if check_location(tweet._json) == True:
+                    tweet._json = add_sentiment_score(tweet._json)
                     count = count + 1
-                    overall_count += 1
-                    if (tweet._json['coordinates'] != None):
-                        coordinates0 = tweet._json['coordinates']['coordinates'][0]
-                        coordinates1 = tweet._json['coordinates']['coordinates'][1]
-                    else:
-                        coordinates0 = 0
-                        coordinates1 = 0
+                    overall_count = overall_count + 1
+                    with open('data.txt', 'a') as outfile:
+                        json.dump(tweet._json, outfile)
+                        outfile.write("\n")
+                        print(tweet._json)
+                        print("sentiment_polarity: ", tweet._json['sentiment_score']['polarity'])
+                        print("sentiment_score:", tweet._json['sentiment_score']['subjectivity'])
 
-                    if tweet._json['place'] != None:
-                        placeFullName = tweet._json['place']['full_name']
-                    else:
-                        placeFullName = None
-                    if (coordinates0 > 140.95) & (coordinates0 < 148.63) & (coordinates1 > -39.18) & (coordinates1 < -34) | (placeFullName == 'Melbourne, Victoria'):
-                        with open('data.txt', 'a') as outfile:
-                            json.dump(tweet._json, outfile)
-                            outfile.write("\n")
-                    #print tweet._json
+                # for tweet in alltweets:
+                #     count = count + 1
+                #     overall_count = overall_count + 1
+                #     if check_location(tweet._json) == True:
+                #         with open('data.txt', 'a') as outfile:
+                #             json.dump(tweet._json, outfile)
+                #             outfile.write("\n")
+                #             print(tweet._json)ba
+
                 print ("The count of tweets for a timeline is: ", count, overall_count)
+
                 if overall_count > 10000:
                     couch.write_to_couch()
                     count = 0
@@ -114,4 +141,12 @@ if __name__ == '__main__':
             continue
         except StopIteration:
             break
+
+if __name__ == '__main__':
+    tweets = tweepy.Cursor(api.search, result_type='recent',include_entities=True, geocode="-37.8375587,145.0413208,70km").items()
+    save_tweet(tweets)
+    print access_token
+    print access_secret
+
+
 
