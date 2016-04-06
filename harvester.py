@@ -2,6 +2,7 @@ import tweepy
 import time
 #import couchdb
 import os
+import random
 import urllib
 import json
 from tweepy import Stream
@@ -11,25 +12,42 @@ import datetime
 from datetime import timedelta
 import math
 from textblob import TextBlob
-from geopy.geocoders import Nominatim
-# import couch
+#from geopy.geocoders import Nominatim
+import couch
 
-access_token = "3254357972-gQDabKOQfbZJsSGyUVynYqckImVjizBDydjuxhX"
-access_secret = "rrGORFp6LW3MznoFKfCvkjNo3pAfpVPGb75Vv3rzv4xFF"
-consumer_key = "WdTNeWnGBzRHfuJGBN0xoCJxp"
-consumer_secret = "1BKrrH5eQFrYzzzf6Z5bXYdfVNENtoDpdXWVQw0NDt5TK6Czoe"
+centre_list = [[-37.740313, 144.759292], [-37.871059, 145.151023], [-37.606616, 145.079269]]
 
-access_token_list = ['3254357972-gQDabKOQfbZJsSGyUVynYqckImVjizBDydjuxhX', '2787646230-a4sEVXjIlHU8rslO2jpsf2lX2ksyOVQEm40VZrE', '1615559564-AXla3P6ErZuZJCYiWma0S6EoazOAF9LpHS7Zgk6']
-access_secret_list = ['rrGORFp6LW3MznoFKfCvkjNo3pAfpVPGb75Vv3rzv4xFF', 'CqXHoVEAcW5XINRqtVLDV7AkOzFmmFg8SUUQrnRJVjqP8ZzLMU', 'yLDl387DdORqvXaFEyxOPR9MVEjYTQeIUFwMRJQu5NIrlgnfRI']
-consumer_key_list = ['WdTNeWnGBzRHfuJGBN0xoCJxp', '7CQ1IAImnhdjQ5Tj8eB83LdMj', 'CwP9jWveyzDUC61XFb9iQTlfx']
-consumer_secret_list = ['1BKrrH5eQFrYzzzf6Z5bXYdfVNENtoDpdXWVQw0NDt5TK6Czoe', 'CqXHoVEAcW5XINRqtVLDV7AkOzFmmFg8SUUQrnRJVjqP8ZzLMU', 'yLDl387DdORqvXaFEyxOPR9MVEjYTQeIUFwMRJQu5NIrlgnfRI']
+apikey1 = { 'access_token' : "3254357972-gQDabKOQfbZJsSGyUVynYqckImVjizBDydjuxhX",
+            'access_secret' : "rrGORFp6LW3MznoFKfCvkjNo3pAfpVPGb75Vv3rzv4xFF",
+            'consumer_key' : "WdTNeWnGBzRHfuJGBN0xoCJxp",
+            'consumer_secret' : "1BKrrH5eQFrYzzzf6Z5bXYdfVNENtoDpdXWVQw0NDt5TK6Czoe"}
+
+apikey2 = { 'access_token' : "2787646230-a4sEVXjIlHU8rslO2jpsf2lX2ksyOVQEm40VZrE",
+            'access_secret' : "Cnb2Z3t83Iow5r6qCOldFsTSHDBM8nzP37RWWsd1sy9fW",
+            'consumer_key' : "7CQ1IAImnhdjQ5Tj8eB83LdMj",
+            'consumer_secret' : "CqXHoVEAcW5XINRqtVLDV7AkOzFmmFg8SUUQrnRJVjqP8ZzLMU"}
+
+apikey3 = { 'access_token' : "1615559564-AXla3P6ErZuZJCYiWma0S6EoazOAF9LpHS7Zgk6",
+            'access_secret' : "2QgYfYnTkkQdsHdwJ5fzGgmpxDNmfHq3Yh72CCSol2psY",
+            'consumer_key' : "CwP9jWveyzDUC61XFb9iQTlfx",
+            'consumer_secret' : "yLDl387DdORqvXaFEyxOPR9MVEjYTQeIUFwMRJQu5NIrlgnfRI"}
+
+apikey4 = { 'access_token' : "705196484359159808-mdR84YBpYoQNWb5j9NKAP5RoEhrEHky",
+            'access_secret' : "tgLkR7CsubtPMeRJvmMVit5AvrE2szZz6TgegJeKJMGp3",
+            'consumer_key' : "5BVhllWNmmKj6BkFZbO2lBYD9",
+            'consumer_secret' : "xd80Q3dWvEBNBZtjGrikFZXJnavWjEEnTf5fFLOgwXlb9AuRwp"}
+
+apikeys = [apikey1, apikey2, apikey3, apikey4]
+
+# access_token_list = ['3254357972-gQDabKOQfbZJsSGyUVynYqckImVjizBDydjuxhX', '2787646230-a4sEVXjIlHU8rslO2jpsf2lX2ksyOVQEm40VZrE', '1615559564-AXla3P6ErZuZJCYiWma0S6EoazOAF9LpHS7Zgk6']
+# access_secret_list = ['rrGORFp6LW3MznoFKfCvkjNo3pAfpVPGb75Vv3rzv4xFF', 'CqXHoVEAcW5XINRqtVLDV7AkOzFmmFg8SUUQrnRJVjqP8ZzLMU', 'yLDl387DdORqvXaFEyxOPR9MVEjYTQeIUFwMRJQu5NIrlgnfRI']
+# consumer_key_list = ['WdTNeWnGBzRHfuJGBN0xoCJxp', '7CQ1IAImnhdjQ5Tj8eB83LdMj', 'CwP9jWveyzDUC61XFb9iQTlfx']
+# consumer_secret_list = ['1BKrrH5eQFrYzzzf6Z5bXYdfVNENtoDpdXWVQw0NDt5TK6Czoe', 'CqXHoVEAcW5XINRqtVLDV7AkOzFmmFg8SUUQrnRJVjqP8ZzLMU', 'yLDl387DdORqvXaFEyxOPR9MVEjYTQeIUFwMRJQu5NIrlgnfRI']
 
 count_error = 0
 
 
-auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-auth.set_access_token(access_token, access_secret)
-api = tweepy.API(auth)
+
 
 #couch = couchdb.Server()
 #couch = couchdb.Server('http://localhost:5984')
@@ -84,7 +102,7 @@ def check_location(tweet):
         placeFullName = tweet['place']['full_name']
     else:
         placeFullName = None
-    if (coordinates0 > 140.95) & (coordinates0 < 148.63) & (coordinates1 > -39.18) & (coordinates1 < -34) | (placeFullName == 'Melbourne, Victoria'):
+    if (coordinates0 > 144.39) & (coordinates0 < 145.76) & (coordinates1 > -38.26) & (coordinates1 < -37.4) | (placeFullName == 'Melbourne, Victoria'):
         return True
     else:
         return False
@@ -95,8 +113,8 @@ def save_tweet(tweets):
         try:
             tweet = tweets.next()
             if tweet._json["coordinates"] != None:
-                screenName = tweet._json["user"]["screen_name"]
-                alltweets = getTimeline(screenName)
+                # screenName = tweet._json["user"]["screen_name"]
+                # alltweets = getTimeline(screenName)
                 count = 0
                 if check_location(tweet._json) == True:
                     tweet._json = add_sentiment_score(tweet._json)
@@ -105,9 +123,9 @@ def save_tweet(tweets):
                     with open('data.txt', 'a') as outfile:
                         json.dump(tweet._json, outfile)
                         outfile.write("\n")
-                        print(tweet._json)
-                        print("sentiment_polarity: ", tweet._json['sentiment_score']['polarity'])
-                        print("sentiment_score:", tweet._json['sentiment_score']['subjectivity'])
+                        # print(tweet._json)
+                        # print("sentiment_polarity: ", tweet._json['sentiment_score']['polarity'])
+                        # print("sentiment_score:", tweet._json['sentiment_score']['subjectivity'])
 
                 # for tweet in alltweets:
                 #     count = count + 1
@@ -118,35 +136,57 @@ def save_tweet(tweets):
                 #             outfile.write("\n")
                 #             print(tweet._json)ba
 
-                print ("The count of tweets for a timeline is: ", count, overall_count)
+                # print ("The count of tweets for a timeline is: ", count, overall_count)
 
-                if overall_count > 10000:
+                if overall_count > 1000:
                     couch.write_to_couch()
                     count = 0
                     overall_count = 0
                 # getTimeline(screenName,db)
         except tweepy.TweepError:
-            count_error = count_error + 1
-            list_id = count_error%4
+            # count_error = count_error + 1
+            # list_id = count_error%4
 
-            access_token = access_token_list[list_id]
-            access_secret = access_secret_list[list_id]
-            consumer_key = consumer_key_list[list_id]
-            consumer_secret = consumer_secret_list[list_id]
+            # access_token = access_token_list[list_id]
+            # access_secret = access_secret_list[list_id]
+            # consumer_key = consumer_key_list[list_id]
+            # consumer_secret = consumer_secret_list[list_id]
 
-            couch.write_to_couch()
-            count = 0
-            overall_count = 0
-            time.sleep(120)
+            # couch.write_to_couch()
+            # count = 0
+            # overall_count = 0
+            # time.sleep(120)
             continue
         except StopIteration:
             break
 
 if __name__ == '__main__':
-    tweets = tweepy.Cursor(api.search, result_type='recent',include_entities=True, geocode="-37.8375587,145.0413208,70km").items()
-    save_tweet(tweets)
-    print access_token
-    print access_secret
+
+    key = random.choice(apikeys)
+    auth = tweepy.OAuthHandler(key['consumer_key'], key['consumer_secret'])
+    auth.set_access_token(key['access_token'], key['access_secret'])
+    api = tweepy.API(auth)
+
+    geocode_co = str(centre_list[0][0])+","+str(centre_list[0][1])+","+"19.5km"
+
+    error_rate_count = 0
+    try:
+        tweets = tweepy.Cursor(api.search, result_type='recent',include_entities=True, geocode=geocode_co).items()
+        error_rate_count = 0
+        save_tweet(tweets)
+    except tweepy.TweepError:
+        error_rate_count += 1
+        if(error_rate_count <= 3):
+            key = random.choice(apikeys)
+            print("Changed apikey")
+            print(key)
+            auth = tweepy.OAuthHandler(key['consumer_key'], key['consumer_secret'])
+            auth.set_access_token(key['access_token'], key['access_secret'])
+            api = tweepy.API(auth)
+        else:
+            time.sleep(120)
+            print("Sleeping....")
+
 
 
 

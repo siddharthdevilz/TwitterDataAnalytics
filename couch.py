@@ -11,15 +11,18 @@ cb = Bucket('couchbase://115.146.85.104/default')
 print (cb.server_nodes)
 
 def write_to_couch():
+	count = 0
 	for line in open('data.txt', 'r'):
 		data = json.loads(line)
 		id = (data['id'])
 		try:
 			cb.insert(str(id), json.loads(line))
+			count += 1
 		except Exception, e:
 			print (e)
 			continue
 	os.remove('data.txt')
+	print("Wrote ",count," tweets to couch")
 	
 	#id+=1
 	#data.append(json.load(line))
