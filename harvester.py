@@ -45,6 +45,7 @@ apikeys = [apikey1, apikey2, apikey3, apikey4]
 # consumer_secret_list = ['1BKrrH5eQFrYzzzf6Z5bXYdfVNENtoDpdXWVQw0NDt5TK6Czoe', 'CqXHoVEAcW5XINRqtVLDV7AkOzFmmFg8SUUQrnRJVjqP8ZzLMU', 'yLDl387DdORqvXaFEyxOPR9MVEjYTQeIUFwMRJQu5NIrlgnfRI']
 
 count_error = 0
+error_rate_count = 0
 
 
 
@@ -138,12 +139,26 @@ def save_tweet(tweets):
 
                 # print ("The count of tweets for a timeline is: ", count, overall_count)
 
-                if overall_count > 1000:
+                if overall_count > 250:
                     couch.write_to_couch()
                     count = 0
                     overall_count = 0
                 # getTimeline(screenName,db)
         except tweepy.TweepError:
+            error_rate_count += 1
+            if(error_rate_count <= 3):
+                key = random.choice(apikeys)
+                print("Changed apikey")
+                print(key)
+                auth = tweepy.OAuthHandler(key['consumer_key'], key['consumer_secret'])
+                auth.set_access_token(key['access_token'], key['access_secret'])
+                api = tweepy.API(auth)
+            else:
+                time.sleep(120)
+                print("Sleeping....")
+                error_rate_count = 0
+       # except Exception, e:
+        #    print e
             # count_error = count_error + 1
             # list_id = count_error%4
 
