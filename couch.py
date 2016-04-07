@@ -6,7 +6,7 @@ import couchbase.exceptions as E
 import json
 import os
 
-cb = Bucket('couchbase://115.146.85.104/default')
+cb = Bucket('couchbase://115.146.85.104/melbourne_tweets')
 
 print (cb.server_nodes)
 

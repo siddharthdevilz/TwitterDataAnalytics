@@ -110,6 +110,7 @@ def check_location(tweet):
 
 def save_tweet(tweets):
     overall_count = 0
+    global error_rate_count
     while True:
         try:
             tweet = tweets.next()
@@ -145,14 +146,16 @@ def save_tweet(tweets):
                     overall_count = 0
                 # getTimeline(screenName,db)
         except tweepy.TweepError:
+            print(tweepy.TweepError)
             error_rate_count += 1
             if(error_rate_count <= 3):
                 key = random.choice(apikeys)
-                print("Changed apikey")
+                print("1. Changed apikey")
                 print(key)
                 auth = tweepy.OAuthHandler(key['consumer_key'], key['consumer_secret'])
                 auth.set_access_token(key['access_token'], key['access_secret'])
                 api = tweepy.API(auth)
+                continue
             else:
                 time.sleep(120)
                 print("Sleeping....")
@@ -171,7 +174,7 @@ def save_tweet(tweets):
             # count = 0
             # overall_count = 0
             # time.sleep(120)
-            continue
+                continue
         except StopIteration:
             break
 
@@ -184,6 +187,7 @@ if __name__ == '__main__':
 
     geocode_co = str(centre_list[0][0])+","+str(centre_list[0][1])+","+"19.5km"
 
+    global error_rate_count
     error_rate_count = 0
     try:
         tweets = tweepy.Cursor(api.search, result_type='recent',include_entities=True, geocode=geocode_co).items()
@@ -193,7 +197,7 @@ if __name__ == '__main__':
         error_rate_count += 1
         if(error_rate_count <= 3):
             key = random.choice(apikeys)
-            print("Changed apikey")
+            print("2. Changed apikey")
             print(key)
             auth = tweepy.OAuthHandler(key['consumer_key'], key['consumer_secret'])
             auth.set_access_token(key['access_token'], key['access_secret'])
