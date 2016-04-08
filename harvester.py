@@ -148,6 +148,7 @@ def save_tweet(tweets):
         except tweepy.TweepError:
             print(tweepy.TweepError)
             error_rate_count += 1
+            import pdb; pdb.set_trace()
             if(error_rate_count <= 3):
                 key = random.choice(apikeys)
                 print("1. Changed apikey")
@@ -155,11 +156,12 @@ def save_tweet(tweets):
                 auth = tweepy.OAuthHandler(key['consumer_key'], key['consumer_secret'])
                 auth.set_access_token(key['access_token'], key['access_secret'])
                 api = tweepy.API(auth)
-                continue
+                #continue
             else:
                 time.sleep(120)
                 print("Sleeping....")
                 error_rate_count = 0
+            #continue
        # except Exception, e:
         #    print e
             # count_error = count_error + 1
@@ -174,9 +176,9 @@ def save_tweet(tweets):
             # count = 0
             # overall_count = 0
             # time.sleep(120)
-                continue
-        except StopIteration:
-            break
+            #continue
+        # except StopIteration:
+        #     break
 
 if __name__ == '__main__':
 
