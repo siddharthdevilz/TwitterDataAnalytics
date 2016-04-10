@@ -18,25 +18,10 @@ from couchbase.bucket import Bucket
 import couchbase.exceptions as E
 cb = Bucket('couchbase://115.146.85.104/melbourne_tweets')
 
-# access_token = "3254357972-gQDabKOQfbZJsSGyUVynYqckImVjizBDydjuxhX"
-# access_secret = "rrGORFp6LW3MznoFKfCvkjNo3pAfpVPGb75Vv3rzv4xFF"
-# consumer_key = "WdTNeWnGBzRHfuJGBN0xoCJxp"
-# consumer_secret = "1BKrrH5eQFrYzzzf6Z5bXYdfVNENtoDpdXWVQw0NDt5TK6Czoe"
-
 consumer_key = "CwP9jWveyzDUC61XFb9iQTlfx";
 consumer_secret = "yLDl387DdORqvXaFEyxOPR9MVEjYTQeIUFwMRJQu5NIrlgnfRI";
 access_token = "1615559564-AXla3P6ErZuZJCYiWma0S6EoazOAF9LpHS7Zgk6";
 access_secret = "2QgYfYnTkkQdsHdwJ5fzGgmpxDNmfHq3Yh72CCSol2psY";
-
-# consumer_key = "7CQ1IAImnhdjQ5Tj8eB83LdMj";
-# consumer_secret = "CqXHoVEAcW5XINRqtVLDV7AkOzFmmFg8SUUQrnRJVjqP8ZzLMU";
-# access_token = "2787646230-a4sEVXjIlHU8rslO2jpsf2lX2ksyOVQEm40VZrE";
-# access_secret = "Cnb2Z3t83Iow5r6qCOldFsTSHDBM8nzP37RWWsd1sy9fW";
-
-access_token_list = ['3254357972-gQDabKOQfbZJsSGyUVynYqckImVjizBDydjuxhX', '2787646230-a4sEVXjIlHU8rslO2jpsf2lX2ksyOVQEm40VZrE', '1615559564-AXla3P6ErZuZJCYiWma0S6EoazOAF9LpHS7Zgk6']
-access_secret_list = ['rrGORFp6LW3MznoFKfCvkjNo3pAfpVPGb75Vv3rzv4xFF', 'CqXHoVEAcW5XINRqtVLDV7AkOzFmmFg8SUUQrnRJVjqP8ZzLMU', 'yLDl387DdORqvXaFEyxOPR9MVEjYTQeIUFwMRJQu5NIrlgnfRI']
-consumer_key_list = ['WdTNeWnGBzRHfuJGBN0xoCJxp', '7CQ1IAImnhdjQ5Tj8eB83LdMj', 'CwP9jWveyzDUC61XFb9iQTlfx']
-consumer_secret_list = ['1BKrrH5eQFrYzzzf6Z5bXYdfVNENtoDpdXWVQw0NDt5TK6Czoe', 'CqXHoVEAcW5XINRqtVLDV7AkOzFmmFg8SUUQrnRJVjqP8ZzLMU', 'yLDl387DdORqvXaFEyxOPR9MVEjYTQeIUFwMRJQu5NIrlgnfRI']
 
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_secret)
