@@ -3,7 +3,7 @@
 
 import tweepy
 import time
-import couchdb
+# import couchdb
 import os
 import pickle
 import jsonpickle
@@ -21,12 +21,12 @@ from textblob import TextBlob
 
 from couchbase.bucket import Bucket
 import couchbase.exceptions as E
-cb = Bucket('couchbase://115.146.85.104/default')
+cb = Bucket('couchbase://115.146.85.104/melbourne_tweets')
 
-consumer_key = "7CQ1IAImnhdjQ5Tj8eB83LdMj";
-consumer_secret = "CqXHoVEAcW5XINRqtVLDV7AkOzFmmFg8SUUQrnRJVjqP8ZzLMU";
-access_token = "2787646230-a4sEVXjIlHU8rslO2jpsf2lX2ksyOVQEm40VZrE";
-access_secret = "Cnb2Z3t83Iow5r6qCOldFsTSHDBM8nzP37RWWsd1sy9fW";
+consumer_key = "5BVhllWNmmKj6BkFZbO2lBYD9";
+consumer_secret = "xd80Q3dWvEBNBZtjGrikFZXJnavWjEEnTf5fFLOgwXlb9AuRwp";
+access_token = "705196484359159808-mdR84YBpYoQNWb5j9NKAP5RoEhrEHky";
+access_secret = "tgLkR7CsubtPMeRJvmMVit5AvrE2szZz6TgegJeKJMGp3";
 
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_secret)
@@ -38,17 +38,26 @@ usernames_file_path = "/home/ubuntu/Harvester/streamUsername.txt"
 all_usernames = []
 
 def getTimeline(screenName):
-    # timeline_tweets = []
-    timeline_tweets = ''
+    timeline_tweets = []
     try:
-        timeline_tweets = api.user_timeline(screen_name=screenName, count=200)
-    except Exception as e:
-        print ("getTimeline", e)
-        pass
+        new_tweets = api.user_timeline(screen_name=screenName, count=200)
+        timeline_tweets.extend(new_tweets)
+        oldest_id = timeline_tweets[-1].id - 1
+        created_time = timeline_tweets[-1].created_at
+        time_limit = datetime(2015, 1, 1, 0, 0, 0)
+        while len(new_tweets) > 0 and created_time > time_limit:
+            new_tweets = api.user_timeline(screen_name=screenName, count=200, max_id=oldest_id)
+            timeline_tweets.extend(new_tweets)
+            created_time = new_tweets[-1].created_at
+            oldest_id = timeline_tweets[-1].id - 1
+            print(timeline_tweets[-1])
     except tweepy.TweepError:
-        print("Time out, please wait...")
         time.sleep(60)
         pass
+    except IndexError:
+        return timeline_tweets
+    except Exception as e:
+        print ("Encountered Exception: ", e)
     return timeline_tweets
 
 def add_sentiment_score(tweet):
@@ -92,27 +101,27 @@ def check_location(tweet):
     else:
         return False
 
-
 def save_tweet(tweet):
     timeline_tweets = []
     pickled = jsonpickle.encode(tweet)
     results = json.loads(pickled)
     doc = results['py/state']['_json']
     doc = add_sentiment_score(tweet._json)
-    #store to couchbase
-    id = tweet._json['id']
-    cb.insert(str(id), tweet._json)
-    print("doc: ",doc)
 
     # check if the user name if list, if not search the timeline
-    if check_location(tweet._json) == True:
+    if check_location(doc) == True:
+        #store to couchbase
+        id = doc['id']
+        try:
+            cb.insert(str(id), doc)
+        except Exception, e:
+            pass
         screenName = doc["user"]["screen_name"]
         if save_username(screenName) == True:
             timeline_tweets = getTimeline(screenName)
             for t in timeline_tweets:
                 if check_location(t._json) == True:
                     t = add_sentiment_score(t._json)
-                    print(t)			
 	                # store tweets to couchbase
                     id = t['id']
                     try:
@@ -139,4 +148,4 @@ if __name__ == '__main__':
     l = MyListener()
     print ("Steaming starts!")
     stream = tweepy.Stream(auth, l)
-    stream.filter(locations=[144.4701516,-37.8394484,144.9411904,-37.6398952])
+    stream.filter(languages = ["en"], locations=[144.4701516,-37.8394484,144.9411904,-37.6398952], async=True)
