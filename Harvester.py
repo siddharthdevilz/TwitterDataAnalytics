@@ -89,5 +89,5 @@ def save_tweet(tweets):
 
 
 if __name__ == '__main__':
-    tweets = tweepy.Cursor(api.search, result_type='recent',include_entities=True, wait_on_rate_limit=True, wait_on_rate_limit_notify=True,geocode="-37.74031,145.759292,70km").items()
+    tweets = tweepy.Cursor(api.search, result_type='recent',include_entities=True, wait_on_rate_limit=True, wait_on_rate_limit_notify=True,geocode="-37.871059,145.151023,20km").items()
     save_tweet(tweets)
