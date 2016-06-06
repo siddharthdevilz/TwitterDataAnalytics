@@ -110,7 +110,7 @@ def save_tweet(tweets):
 
 print("Downloading max {0} tweets".format(maxTweets))
 
-geo = str(centre_list[0][0])+","+str(centre_list[0][1])+","+RADIUS
+geo = str(centre_list[2][0])+","+str(centre_list[2][1])+","+RADIUS
 
 if __name__ == '__main__':
 	iteration_count = 0
