@@ -1,5 +1,15 @@
 # Twitter Data Analytics
 
+### Source Code
+```
+https://github.com/siddharthdevilz/TwitterDataAnalytics/tree/develop
+```
+
+### Project Working Video
+```
+https://www.dropbox.com/s/9zg753wkhrc6z3b/ProjectWorkingVideo.mov?dl=0
+```
+
 ### Instances
 ```sh
 Instance0 - 115.146.88.249
